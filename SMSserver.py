@@ -55,6 +55,8 @@ global LOG_FILE
 LOG_FILE = os.path.join(HOME,'sms.log')
 global PID_FILE
 PID_FILE = os.path.join(HOME,'.sms.pid')
+global LASTPOP_FILE
+LASTPOP_FILE = os.path.join(HOME,'.sms.lastpop')
 CONF_FILE = os.path.join(HOME,'.sms.conf')
 if os.path.isfile(CONF_FILE):
     CONF = json.load(open(CONF_FILE))
@@ -198,7 +200,7 @@ def main():
     
     while True:
         
-        smsserver.pop3.pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE)
+        smsserver.pop3.pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE,LASTPOP_FILE)
 
 #        print >>open(PID_FILE, 'w'),'RUN - %17s' % (time.strftime("%Y.%m.%d %H:%M:%S"))
         files=glob.glob(TMPDIR+"//*")

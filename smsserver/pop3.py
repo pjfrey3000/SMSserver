@@ -9,7 +9,7 @@ import time
 import smsserver
 from smsserver import logger
 
-def pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE):
+def pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE,LASTPOP_FILE):
 
     mail = poplib.POP3(MAILHOST,int(MAILPORT),int(MAILTIME))
     mailloginuser = mail.user(MAILUSER)
@@ -21,6 +21,11 @@ def pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE):
     if not os.path.exists(TMPDIR):
         os.makedirs(TMPDIR)
 
+    try:
+        file(LASTPOP_FILE, 'w').write("%17s,%s,%s,%s\n" % (time.strftime("%Y.%m.%d %H:%M:%S"), mailstat, mailloginuser, mailloginpass))
+    except IOError, e:
+        logger.writelog(loghandler, "Unable to write LASTPOP file: " + str(LASTPOP_FILE) + ". " + str(e.strerror) + " [" + str(e.errno) + "]", "error")
+    
     if mail.stat()[1] > 0:
         logger.writelog(loghandler, mailstat + " - " + mailloginuser + " - " +  mailloginpass,"info")
 #        print >>open(LOG_FILE, 'a'),'POP - %17s,%s,%s,%s' % (time.strftime("%Y.%m.%d %H:%M:%S"), mailstat, mailloginuser, mailloginpass)
