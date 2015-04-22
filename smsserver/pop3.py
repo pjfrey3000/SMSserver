@@ -9,11 +9,60 @@ import time
 import smsserver
 from smsserver import logger
 
-def pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE,LASTPOP_FILE):
+def pop3(HOME, consoleLogging, loghandler):
 
-    mail = poplib.POP3(MAILHOST,int(MAILPORT),int(MAILTIME))
-    mailloginuser = mail.user(MAILUSER)
-    mailloginpass = mail.pass_(MAILPASS)
+    CONF = {
+        'USERNAME': '',
+        'PASSWORD': '',
+        'API_ID': '',
+        'SENDER_ID': '',  # Your registered mobile phone number.
+        'PHONE_BOOK': {},
+        'ALLOWED_RECIPIENT': {},
+        'ALLOWED_SENDER': {},
+        'POPLOOP': '',
+        'MAILUSER': '',
+        'MAILPASS': '',
+        'MAILHOST': '',
+        'MAILPORT': '',
+        'MAILTIME': '',
+    }
+
+    TMPDIR = os.path.join(HOME,"TMPDIR")
+    LASTPOP_FILE = os.path.join(HOME,'.sms.lastpop')
+    CONF_FILE = os.path.join(HOME,'.sms.conf')
+    if os.path.isfile(CONF_FILE):
+        CONF = json.load(open(CONF_FILE))
+
+    MAILUSER = CONF['MAILUSER']
+    MAILPASS = CONF['MAILPASS']
+    MAILHOST = CONF['MAILHOST']
+    MAILPORT = CONF['MAILPORT']
+    MAILTIME = CONF['MAILTIME']
+
+    try:
+        mail = poplib.POP3(MAILHOST,int(MAILPORT),int(MAILTIME))
+    except:
+        logger.writelog(loghandler, "Timeout [" + str(MAILTIME) + "] while accessing " + str(MAILHOST) + ":" + str(MAILPORT) + ".", "error")
+        if consoleLogging:
+            sys.stdout.write("Timeout [" + str(MAILTIME) + "] while accessing " + str(MAILHOST) + ":" + str(MAILPORT) + ".\n")
+        return True
+        
+    try:
+        mailloginuser = mail.user(MAILUSER)
+    except:
+        logger.writelog(loghandler, "Invalid POP3 user[" + str(MAILUSER) + "].", "error")
+        if consoleLogging:
+            sys.stdout.write("Invalid POP3 user [" + str(MAILUSER) + "].\n")
+        return True
+
+    try:
+        mailloginpass = mail.pass_(MAILPASS)
+    except:
+        logger.writelog(loghandler, "Invalid POP3 password for user [" + str(MAILUSER) + "].", "error")
+        if consoleLogging:
+            sys.stdout.write("Invalid POP3 user [" + str(MAILUSER) + "].\n")
+        return True
+
     mailstat = mail.stat()
 
     shutil.rmtree(TMPDIR, ignore_errors=True)
@@ -25,10 +74,14 @@ def pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE,LASTPOP_FI
         file(LASTPOP_FILE, 'w').write("%17s,%s,%s,%s\n" % (time.strftime("%Y.%m.%d %H:%M:%S"), mailstat, mailloginuser, mailloginpass))
     except IOError, e:
         logger.writelog(loghandler, "Unable to write LASTPOP file: " + str(LASTPOP_FILE) + ". " + str(e.strerror) + " [" + str(e.errno) + "]", "error")
+        if consoleLogging:
+            sys.stdout.write("Unable to write LASTPOP file: " + str(LASTPOP_FILE) + ". " + str(e.strerror) + " [" + str(e.errno) + "].\n")
+        return True
     
     if mail.stat()[1] > 0:
-        logger.writelog(loghandler, mailstat + " - " + mailloginuser + " - " +  mailloginpass,"info")
-#        print >>open(LOG_FILE, 'a'),'POP - %17s,%s,%s,%s' % (time.strftime("%Y.%m.%d %H:%M:%S"), mailstat, mailloginuser, mailloginpass)
+        logger.writelog(loghandler, str(mailstat) + " - " + str(mailloginuser) + " - " +  str(mailloginpass),"info")
+        if consoleLogging:
+            sys.stdout.write(str(mailstat) + " - " + str(mailloginuser) + " - " +  str(mailloginpass))
         numMessages = len(mail.list()[1])
         for i in range(numMessages):
             outfilename = TMPDIR + "//tmpsms.%.7f" % time.time()
@@ -62,7 +115,7 @@ def pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE,LASTPOP_FI
                     if not "--" in j[:2] and not "Content-Type" in j[:12] and not "Content-Transfer-Encoding" in j[:25]:
                         outfile.write(j)
                         outfile.write("\n")
-            mail.dele(i+1)
+#            mail.dele(i+1)
             outfile.close()
     mail.quit()
     return(True)

@@ -1,10 +1,6 @@
 import logging
 import logging.handlers
 
-def logger(txt):
-#    print >>open(LOG_FILE, 'a'),'SMS - %17s,Unable to write PID file: %s Error %s [%s]' % (time.strftime("%Y.%m.%d %H:%M:%S"), str(PID_FILE), str(e.strerror), str(e.errno))
-    print >> open(LOG_FILE, 'a'), txt
-
 def openlog(LOG_FILE):
     logger = logging.getLogger("smsserver")
     handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1024000, backupCount=5)

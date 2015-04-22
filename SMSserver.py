@@ -30,48 +30,6 @@ import traceback
 import getopt
 import threading
 
-CONF = {
-    'USERNAME': '',
-    'PASSWORD': '',
-    'API_ID': '',
-    'SENDER_ID': '',  # Your registered mobile phone number.
-    'PHONE_BOOK': {},
-    'ALLOWED_RECIPIENT': {},
-    'ALLOWED_SENDER': {},
-    'POPLOOP': '',
-    'MAILUSER': '',
-    'MAILPASS': '',
-    'MAILHOST': '',
-    'MAILPORT': '',
-    'MAILTIME': '',
-}
-
-SMSSERVERVERSION = "master"
-TMPDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),"TMPDIR")
-PROG = os.path.basename(__file__)
-# HOME = os.environ.get('HOME', os.environ.get('HOMEPATH',os.path.dirname(os.path.realpath(__file__))))
-HOME = os.path.dirname(os.path.abspath(__file__))
-global LOG_FILE
-LOG_FILE = os.path.join(HOME,'sms.log')
-global PID_FILE
-PID_FILE = os.path.join(HOME,'.sms.pid')
-global LASTPOP_FILE
-LASTPOP_FILE = os.path.join(HOME,'.sms.lastpop')
-CONF_FILE = os.path.join(HOME,'.sms.conf')
-if os.path.isfile(CONF_FILE):
-    CONF = json.load(open(CONF_FILE))
-SENDER_ID = CONF['SENDER_ID']
-PHONE_BOOK = CONF['PHONE_BOOK']
-POPLOOP = CONF['POPLOOP']
-
-MAILUSER = CONF['MAILUSER']
-MAILPASS = CONF['MAILPASS']
-MAILHOST = CONF['MAILHOST']
-MAILPORT = CONF['MAILPORT']
-MAILTIME = CONF['MAILTIME']
-
-
-
 def help_message(PROG):
     """
     print help message for commandline options
@@ -120,8 +78,7 @@ def daemonize(CREATEPID, LOG_FILE, PID_FILE, loghandler):
             file(PID_FILE, 'w').write("%s\n" % pid)
         except IOError, e:
             logger.writelog(loghandler, "Unable to write PID file: " + str(PID_FILE) + ". " + str(e.strerror) + " [" + str(e.errno) + "]", "error")
-#            print >>open(LOG_FILE, 'a'),'SMS - %17s,Unable to write PID file: %s Error %s [%s]' % (time.strftime("%Y.%m.%d %H:%M:%S"), str(PID_FILE), str(e.strerror), str(e.errno))
-    # Redirect all output
+
     sys.stdout.flush()
     sys.stderr.flush()
     devnull = getattr(os, 'devnull', '/dev/null')
@@ -135,15 +92,51 @@ def daemonize(CREATEPID, LOG_FILE, PID_FILE, loghandler):
 
 def main():
 
-    CREATEPID = True
-    DAEMON = False
-    forcedPort = None
-    noLaunch = True
-    
+    CONF = {
+        'USERNAME': '',
+        'PASSWORD': '',
+        'API_ID': '',
+        'SENDER_ID': '',  # Your registered mobile phone number.
+        'PHONE_BOOK': {},
+        'ALLOWED_RECIPIENT': {},
+        'ALLOWED_SENDER': {},
+        'POPLOOP': '',
+        'MAILUSER': '',
+        'MAILPASS': '',
+        'MAILHOST': '',
+        'MAILPORT': '',
+        'MAILTIME': '',
+    }
+
+    SMSSERVERVERSION = "master"
+    HOME = os.path.dirname(os.path.abspath(__file__))
+    TMPDIR = os.path.join(HOME,"TMPDIR")
+    PROG = os.path.basename(__file__)
+    LOG_FILE = os.path.join(HOME,'sms.log')
+    PID_FILE = os.path.join(HOME,'.sms.pid')
+    LASTPOP_FILE = os.path.join(HOME,'.sms.lastpop')
+    CONF_FILE = os.path.join(HOME,'.sms.conf')
+    if os.path.isfile(CONF_FILE):
+        CONF = json.load(open(CONF_FILE))
+    SENDER_ID = CONF['SENDER_ID']
+    PHONE_BOOK = CONF['PHONE_BOOK']
+    POPLOOP = CONF['POPLOOP']
+
+    MAILUSER = CONF['MAILUSER']
+    MAILPASS = CONF['MAILPASS']
+    MAILHOST = CONF['MAILHOST']
+    MAILPORT = CONF['MAILPORT']
+    MAILTIME = CONF['MAILTIME']
+
+    ALLOWED_SENDER = CONF['ALLOWED_SENDER']
+    ALLOWED_RECIPIENT = CONF['ALLOWED_RECIPIENT']
+
     loghandler = logger.openlog(LOG_FILE)
     logger.writelog(loghandler, "Starting SMSserver", "info")
     
     MY_ARGS = sys.argv[1:]
+    CREATEPID = True
+    DAEMON= False
     
     consoleLogging = (not hasattr(sys, "frozen")) or (PROG.lower().find('-console') > 0)
     
@@ -194,37 +187,36 @@ def main():
     if DAEMON:
         daemonize(CREATEPID, LOG_FILE, PID_FILE, loghandler)
 
-    # Use this PID for everything
     PID = os.getpid()
 
     
     while True:
         
-        smsserver.pop3.pop3(MAILHOST,MAILPORT,MAILTIME,MAILUSER,MAILPASS,TMPDIR,LOG_FILE,LASTPOP_FILE)
-
-#        print >>open(PID_FILE, 'w'),'RUN - %17s' % (time.strftime("%Y.%m.%d %H:%M:%S"))
+        smsserver.pop3.pop3(HOME, consoleLogging, loghandler)
+        if consoleLogging:
+            sys.stdout.write("Fetching emails.\n")
         files=glob.glob(TMPDIR+"//*")
         for file in files:
             f=open(file, 'r')
             sender = f.readline().rstrip()
             recipient = f.readline().rstrip()
-            if check_if_allowed(sender, recipient, loghandler) == False:
+            if smsserver.clickatell.check_if_allowed(sender, recipient, HOME, consoleLogging, loghandler) == False:
                 break
             outputnumber = clickatell.sanitize_phone_number(f.readline().rstrip())
-    #        print 'Num : %s' % outputnumber
             line = f.readline()
             outputsms = line.rstrip()
             while line:
                 line=f.readline()
                 outputsms = outputsms + " " + line.rstrip()
-    #        print 'SMS : %s' % outputsms.rstrip()
-            smsserver.clickatell.send_message(outputsms, outputnumber, loghandler)
+            smsserver.clickatell.send_message(outputsms, outputnumber, HOME, consoleLogging, loghandler)
             f.close()
-            if os.path.isfile(file):
-                os.remove(file)
+#            if os.path.isfile(file):
+#                 os.remove(file)
+        if consoleLogging:
+            sys.stdout.write("Waiting for " + POPLOOP + "seconds.\n")
         time.sleep(float(POPLOOP))
         
-        return
+    return
         
 if __name__ == "__main__":
     main()

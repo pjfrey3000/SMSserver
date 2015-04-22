@@ -44,6 +44,9 @@ import urllib
 import os, sys, time, re
 import simplejson as json
 
+import smsserver
+from smsserver import logger
+
 # Clickatell account configuration parameters.
 # Create a separate configuration file named `.sms.conf` in your `$HOME`
 # directory. The configuration file is single JSON formatted object with the
@@ -61,7 +64,6 @@ CONF = {
 }
 
 PROG = os.path.basename(__file__)
-# HOME = os.environ.get('HOME', os.environ.get('HOMEPATH',os.path.dirname(os.path.realpath(__file__))))
 HOME = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(HOME,'sms.log')
 CONF_FILE = os.path.join(HOME,'.sms.conf')
@@ -70,10 +72,6 @@ if os.path.isfile(CONF_FILE):
 SENDER_ID = CONF['SENDER_ID']
 PHONE_BOOK = CONF['PHONE_BOOK']
 PAGER = os.environ.get('PAGER','less')
-
-# URL query string parameters.
-QUERY = {'user': CONF['USERNAME'], 'password': CONF['PASSWORD'],
-          'api_id': CONF['API_ID'], 'concat': 3}
 
 # Clickatell status messages.
 MSG_STATUS = {
@@ -103,22 +101,70 @@ def message_status(msgid):
 def sanitize_phone_number(number):
     result = re.sub(r'[+ ()-]', '', number)
     if not re.match(r'^\d+$', result):
-        print 'illegal phone number: %s' % number
-#        exit(1)
+        exit(1)
         result = 'illegal phone number'
     return result
 
-def check_if_allowed(sender, recipient, loghandler):
+def check_if_allowed(sender, recipient, HOME, consoleLogging, loghandler):
+    CONF = {
+        'USERNAME': '',
+        'PASSWORD': '',
+        'API_ID': '',
+        'SENDER_ID': '',  # Your registered mobile phone number.
+        'PHONE_BOOK': {},
+        'ALLOWED_RECIPIENT': {},
+        'ALLOWED_SENDER': {},
+        'POPLOOP': '',
+        'MAILUSER': '',
+        'MAILPASS': '',
+        'MAILHOST': '',
+        'MAILPORT': '',
+        'MAILTIME': '',
+    }
+    CONF_FILE = os.path.join(HOME,'.sms.conf')
+    if os.path.isfile(CONF_FILE):
+        CONF = json.load(open(CONF_FILE))
+
+    ALLOWED_SENDER = CONF['ALLOWED_SENDER']
+    ALLOWED_RECIPIENT = CONF['ALLOWED_RECIPIENT']
+
     allok = False
     if sender.lower() in ALLOWED_SENDER and recipient.lower() in ALLOWED_RECIPIENT:
             allok = True
+            return(allok)
     logger.writelog(loghandler, "Sender " + sender + " or recipient " + recipient + " not allowed!","info")
+    if consoleLogging:
+        sys.stdout.write("Sender " + sender + " or recipient " + recipient + " not allowed!\n")
     return(allok)
 
 
 # Send text message. The recipient phone number can be a phone number
 # or the name of a phone book entry.
-def send_message(text, to, loghandler):
+def send_message(text, to, HOME, consoleLogging, loghandler):
+    CONF = {
+        'USERNAME': '',
+        'PASSWORD': '',
+        'API_ID': '',
+        'SENDER_ID': '',  # Your registered mobile phone number.
+        'PHONE_BOOK': {},
+        'ALLOWED_RECIPIENT': {},
+        'ALLOWED_SENDER': {},
+        'POPLOOP': '',
+        'MAILUSER': '',
+        'MAILPASS': '',
+        'MAILHOST': '',
+        'MAILPORT': '',
+        'MAILTIME': '',
+    }
+    CONF_FILE = os.path.join(HOME,'.sms.conf')
+    if os.path.isfile(CONF_FILE):
+        CONF = json.load(open(CONF_FILE))
+    SENDER_ID = CONF['SENDER_ID']
+    PHONE_BOOK = CONF['PHONE_BOOK']
+
+    # URL query string parameters.
+    QUERY = {'user': CONF['USERNAME'], 'password': CONF['PASSWORD'], 'api_id': CONF['API_ID'], 'concat': 3}
+    
     if to in PHONE_BOOK:
         name = to
         to = PHONE_BOOK[to]
@@ -134,16 +180,17 @@ def send_message(text, to, loghandler):
     QUERY['from'] = sender_id
     QUERY['to'] = to
     QUERY['text'] = text
-    result = http_cmd('sendmsg')
+    result = http_cmd('sendmsg', QUERY)
     now = time.localtime(time.time())
     if name:
         to += ': ' + name
     logger.writelog(loghandler, "SMS sent to " + to + " from " + sender_id + ". Result : [" + result + "] " + text,"info")
-#    print >>open(LOG_FILE, 'a'),'SMS - %17s,%s,%s,%40s,%s' % (time.strftime("%Y.%m.%d %H:%M:%S"), to, sender_id, result, text)
+    if consoleLogging:
+        sys.stdout.write("SMS sent to " + to + " from " + sender_id + ". Result : [" + result + "] " + text + ".\n")
     return result
 
 # Execute Clickatell HTTP command.
-def http_cmd(cmd):
+def http_cmd(cmd, QUERY):
     url = 'http://api.clickatell.com/http/' + cmd
     query = urllib.urlencode(QUERY)
     file = urllib.urlopen(url, query)
