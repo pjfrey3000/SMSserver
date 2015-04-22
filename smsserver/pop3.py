@@ -115,7 +115,7 @@ def pop3(HOME, consoleLogging, loghandler):
                     if not "--" in j[:2] and not "Content-Type" in j[:12] and not "Content-Transfer-Encoding" in j[:25]:
                         outfile.write(j)
                         outfile.write("\n")
-#            mail.dele(i+1)
+            mail.dele(i+1)
             outfile.close()
     mail.quit()
     return(True)

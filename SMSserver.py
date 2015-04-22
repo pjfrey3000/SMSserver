@@ -210,8 +210,8 @@ def main():
                 outputsms = outputsms + " " + line.rstrip()
             smsserver.clickatell.send_message(outputsms, outputnumber, HOME, consoleLogging, loghandler)
             f.close()
-#            if os.path.isfile(file):
-#                 os.remove(file)
+            if os.path.isfile(file):
+                 os.remove(file)
         if consoleLogging:
             sys.stdout.write("Waiting for " + POPLOOP + "seconds.\n")
         time.sleep(float(POPLOOP))
