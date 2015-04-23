@@ -20,5 +20,11 @@
   "MAILHOST":  "your pop3 server",
   "MAILPORT":  "110",
   "MAILTIME":  "240",
-  "POPLOOP":   "300"
+  "POPLOOP":   "300",
+  "SMTPUSER":  "your smtp user",
+  "SMTPPASS":  "your smtp password",
+  "SMTPHOST":  "your smtp server",
+  "SMTPSENDER": "the sender of the ack email",
+  "SMTPPORT":  "25",
+  "SMTPTIME":  "240"
 }

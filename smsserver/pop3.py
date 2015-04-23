@@ -12,14 +12,6 @@ from smsserver import logger
 def pop3(HOME, consoleLogging, loghandler):
 
     CONF = {
-        'USERNAME': '',
-        'PASSWORD': '',
-        'API_ID': '',
-        'SENDER_ID': '',  # Your registered mobile phone number.
-        'PHONE_BOOK': {},
-        'ALLOWED_RECIPIENT': {},
-        'ALLOWED_SENDER': {},
-        'POPLOOP': '',
         'MAILUSER': '',
         'MAILPASS': '',
         'MAILHOST': '',

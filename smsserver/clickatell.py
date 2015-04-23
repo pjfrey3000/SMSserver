@@ -107,19 +107,8 @@ def sanitize_phone_number(number):
 
 def check_if_allowed(sender, recipient, HOME, consoleLogging, loghandler):
     CONF = {
-        'USERNAME': '',
-        'PASSWORD': '',
-        'API_ID': '',
-        'SENDER_ID': '',  # Your registered mobile phone number.
-        'PHONE_BOOK': {},
         'ALLOWED_RECIPIENT': {},
         'ALLOWED_SENDER': {},
-        'POPLOOP': '',
-        'MAILUSER': '',
-        'MAILPASS': '',
-        'MAILHOST': '',
-        'MAILPORT': '',
-        'MAILTIME': '',
     }
     CONF_FILE = os.path.join(HOME,'.sms.conf')
     if os.path.isfile(CONF_FILE):
@@ -147,14 +136,6 @@ def send_message(text, to, HOME, consoleLogging, loghandler):
         'API_ID': '',
         'SENDER_ID': '',  # Your registered mobile phone number.
         'PHONE_BOOK': {},
-        'ALLOWED_RECIPIENT': {},
-        'ALLOWED_SENDER': {},
-        'POPLOOP': '',
-        'MAILUSER': '',
-        'MAILPASS': '',
-        'MAILHOST': '',
-        'MAILPORT': '',
-        'MAILTIME': '',
     }
     CONF_FILE = os.path.join(HOME,'.sms.conf')
     if os.path.isfile(CONF_FILE):

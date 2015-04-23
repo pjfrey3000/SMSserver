@@ -15,6 +15,7 @@
 import smsserver
 from smsserver import clickatell
 from smsserver import pop3
+from smsserver import smtp
 from smsserver import logger
 
 import poplib
@@ -93,19 +94,7 @@ def daemonize(CREATEPID, LOG_FILE, PID_FILE, loghandler):
 def main():
 
     CONF = {
-        'USERNAME': '',
-        'PASSWORD': '',
-        'API_ID': '',
-        'SENDER_ID': '',  # Your registered mobile phone number.
-        'PHONE_BOOK': {},
-        'ALLOWED_RECIPIENT': {},
-        'ALLOWED_SENDER': {},
         'POPLOOP': '',
-        'MAILUSER': '',
-        'MAILPASS': '',
-        'MAILHOST': '',
-        'MAILPORT': '',
-        'MAILTIME': '',
     }
 
     SMSSERVERVERSION = "master"
@@ -118,18 +107,7 @@ def main():
     CONF_FILE = os.path.join(HOME,'.sms.conf')
     if os.path.isfile(CONF_FILE):
         CONF = json.load(open(CONF_FILE))
-    SENDER_ID = CONF['SENDER_ID']
-    PHONE_BOOK = CONF['PHONE_BOOK']
     POPLOOP = CONF['POPLOOP']
-
-    MAILUSER = CONF['MAILUSER']
-    MAILPASS = CONF['MAILPASS']
-    MAILHOST = CONF['MAILHOST']
-    MAILPORT = CONF['MAILPORT']
-    MAILTIME = CONF['MAILTIME']
-
-    ALLOWED_SENDER = CONF['ALLOWED_SENDER']
-    ALLOWED_RECIPIENT = CONF['ALLOWED_RECIPIENT']
 
     loghandler = logger.openlog(LOG_FILE)
     logger.writelog(loghandler, "Starting SMSserver", "info")
@@ -208,7 +186,8 @@ def main():
             while line:
                 line=f.readline()
                 outputsms = outputsms + " " + line.rstrip()
-            smsserver.clickatell.send_message(outputsms, outputnumber, HOME, consoleLogging, loghandler)
+            result = smsserver.clickatell.send_message(outputsms, outputnumber, HOME, consoleLogging, loghandler)
+            smsserver.smtp.smtp(sender, "SMS to " + str(outputnumber) + " : " + str(result), "SMS to " + str(outputnumber) + "\r\n------\r\n" + str(result) + "\r\n------\r\n" + str(outputsms), HOME, consoleLogging, loghandler)
             f.close()
             if os.path.isfile(file):
                  os.remove(file)
