@@ -12,6 +12,7 @@ The result is mailed to the sender of the email request.
 The configuration file is a json file:
 
 {
+
   "USERNAME":  "your clickatell username",
   "PASSWORD":  "your clickatell password",
   "API_ID":    "the http api id",
