@@ -1,6 +1,4 @@
-
-
-SMSserver
+###SMSserver
 
 Author: Bernhard Erren bernhard.erren@googlemail.com URL: https://github.com/pjfrey3000/SMSserver
 
