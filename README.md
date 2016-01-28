@@ -1,6 +1,6 @@
-###SMSserver
+###SMSserver (https://github.com/pjfrey3000/SMSserver)
 
-Author: Bernhard Erren bernhard.erren@googlemail.com URL: https://github.com/pjfrey3000/SMSserver
+Author: Bernhard Erren, bernhard.erren@googlemail.com.
 
 Many thanks to Stuart Rackham, srackham@gmail.com for the clickatell library.
 
