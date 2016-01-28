@@ -37,6 +37,7 @@ import signal
 import traceback
 import getopt
 import threading
+from signal import SIGTERM
 
 def help_message(PROG):
     """
@@ -138,7 +139,17 @@ def main():
         opts, args = getopt.getopt(sys.argv[1:], "hfqdp::", ['help', 'quiet', 'daemon', 'port='])  # @UnusedVariable
     except getopt.GetoptError:
         sys.exit(help_message())
-    
+
+    if os.path.isfile(PID_FILE):
+        PF = open(PID_FILE,'r')
+        PID = int(PF.read().strip())
+        PF.close()
+        sys.stdout.write("Pid file " + CONF_FILE + " exist. Killing running instance " + str(PID) + " and exiting!" + "\n")
+        logger.writelog(loghandler, "Pid file " + CONF_FILE + " exist. Killing running instance " + str(PID) + "  and exiting!", "info")
+        os.remove(PID_FILE)
+        os.kill(PID, signal.SIGTERM) #or signal.SIGKILL
+        sys.exit(0)
+        
     for o, a in opts:
 
         # Prints help message
