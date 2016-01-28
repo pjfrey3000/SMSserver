@@ -118,6 +118,13 @@ def main():
 
     loghandler = logger.openlog(LOG_FILE)
     logger.writelog(loghandler, "Starting SMSserver", "info")
+    logger.writelog(loghandler, "SMSserver version        : " + SMSSERVERVERSION, "info")
+    logger.writelog(loghandler, "SMSserver home directory : " + HOME, "info")
+    logger.writelog(loghandler, "SMSserver temp directory : " + TMPDIR, "info")
+    logger.writelog(loghandler, "SMSserver log file       : " + LOG_FILE, "info")
+    logger.writelog(loghandler, "SMSserver pid file       : " + PID_FILE, "info")
+    logger.writelog(loghandler, "SMSserver lastpop file   : " + LASTPOP_FILE, "info")
+    logger.writelog(loghandler, "SMSserver config file    : " + CONF_FILE, "info")
     
     MY_ARGS = sys.argv[1:]
     CREATEPID = True
@@ -153,6 +160,7 @@ def main():
     if CREATEPID:
         if DAEMON:
             pid_dir = os.path.dirname(PID_FILE)
+            logger.writelog(loghandler, "Running in daemon mode. PID file " + PID_FILE + " created.", "info")
             if not os.access(pid_dir, os.F_OK):
                 sys.exit("PID dir: " + pid_dir + " doesn't exist. Exiting.")
             if not os.access(pid_dir, os.W_OK):
@@ -161,7 +169,7 @@ def main():
         else:
             if consoleLogging:
                 sys.stdout.write("Not running in daemon mode. PID file creation disabled.\n")
-
+            logger.writelog(loghandler, "Not running in daemon mode. PID file creation disabled.", "info")
             CREATEPID = False
 
     if consoleLogging:
@@ -178,6 +186,7 @@ def main():
     while True:
         
         smsserver.pop3.pop3(HOME, consoleLogging, loghandler)
+        logger.writelog(loghandler, "Fetching emails", "info")
         if consoleLogging:
             sys.stdout.write("Fetching emails.\n")
         files=glob.glob(TMPDIR+"//*")
@@ -198,6 +207,7 @@ def main():
             f.close()
             if os.path.isfile(file):
                  os.remove(file)
+        logger.writelog(loghandler, "Waiting for " + POPLOOP + "seconds.", "info")
         if consoleLogging:
             sys.stdout.write("Waiting for " + POPLOOP + "seconds.\n")
         time.sleep(float(POPLOOP))
