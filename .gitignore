@@ -1,0 +1,8 @@
+*.pyc
+*.project
+
+.sms.conf
+.sms.lastpop
+sms.log
+/TMPDIR
+
