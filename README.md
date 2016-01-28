@@ -10,6 +10,7 @@ SMSserver fetches emails from a POP3 account, parses the content and creates a r
 
 The configuration file is a json file:
 
+```
 {
 
 "USERNAME": "your clickatell username",
@@ -69,6 +70,7 @@ The configuration file is a json file:
 "SMTPTIME": "240"
 
 }
+```
 
 You can define a set ofallowed recipients of the email (usually the email address of the POP3 account receiving the email requests) and a set of allowed sender email addresses.
 
