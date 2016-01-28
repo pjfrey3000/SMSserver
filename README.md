@@ -50,4 +50,3 @@ preceded by a + or not. You may also provide a name which is contained in the se
 PHONE_BOOK of the json.
 
 The subject of the email is ignored. The content is sent as the SMS text.
-
